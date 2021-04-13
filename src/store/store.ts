@@ -27,7 +27,10 @@ export const store = createStore<STATE>({
     },
     // TODO deleted
     removeItem(state, id: number) {
-      state.todoList.splice(id, 1);
+      state.todoList.splice(
+        state.todoList.findIndex((item) => item.id === id),
+        1
+      );
     },
   },
   actions: {},

@@ -11,7 +11,7 @@
   </div>
 </template>
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, ref, watch } from "vue";
 import item from "@/components/item.vue";
 import { ITEM } from "@/store/store.interface";
 import { useStore } from "vuex";
@@ -21,9 +21,17 @@ export default defineComponent({
   name: "item-list",
   setup() {
     const store = useStore(key);
+    const todoListRef = ref(store.state.todoList);
+    let renderList: ITEM[] = [];
+
+    watch([todoListRef, todoListRef.value], () => {
+      renderList = store.state.todoList;
+    });
 
     return {
-      store,
+      ref: todoListRef,
+      renderList: renderList,
+      store: store,
       allTodoList: () => store.getters[`allTodoList`],
       activeTodoList: () => store.getters[`activeTodoList`],
       clearTodoList: () => store.getters[`clearTodoList`],
@@ -31,23 +39,21 @@ export default defineComponent({
   },
   data() {
     return {
-      renderList: [] as ITEM[],
+      status: this.$route.params.status as "active" | "clear",
     };
   },
   created() {
-    (this.renderList = this.allTodoList()),
-      this.$watch(
-        () => this.$route.params.status,
-        (toParams: "active" | "clear") => {
-          this.initRenderList(toParams);
-        }
-      );
+    this.renderList = this.allTodoList();
+  },
+  // created는 데이터 초기화에 대한 목적, mounted는 DOM 조작에 대한 목적으로 사용할 수 있다.
+  mounted() {
     this.$watch(
-      () => this.store.state.todoList,
-      // eslint-disable-next-line
-      () => {
-        console.log("watched");
-      }
+      () => this.$route.params.status,
+      (status: "active" | "clear") => this.initRenderList(status)
+    );
+    watch(
+      () => this.ref.values(),
+      () => this.initRenderList(this.status)
     );
   },
   methods: {

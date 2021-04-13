@@ -145,7 +145,10 @@ export default createStore({
     },
     // TODO deleted
     removeStatus(state, id: number) {
-      state.todoList.splice(id, 1);
+      state.todoList.splice(
+        state.todoList.findIndex((item) => item.id === id),
+        1
+      );
     },
   },
   actions: {
@@ -224,3 +227,30 @@ methods: {
   },
 }
 ```
+
+(8) vue3.0 에서는 watch를 사용할 때 setup() 내에서 ref()로 지정한 레퍼런스의 변화를 감지할 수 있도록 변경되었다.
+
+```typescript
+// item-list.vue
+setup() {
+    const store = useStore(key);
+    const todoList = ref(store.state.todoList);
+    let renderList: ITEM[] = [];
+
+    watch(todoListRef, () => {
+      renderList = store.state.todoList;
+    });
+
+    return {
+      store: store,
+      todoList: todoList,
+      allTodoList: () => store.getters[`allTodoList`],
+      activeTodoList: () => store.getters[`activeTodoList`],
+      clearTodoList: () => store.getters[`clearTodoList`],
+    };
+  },
+```
+
+- 위의 코드에서 store state에 저장된 todoList를 레퍼런스로 지정하고, 값이 변경되는 것을 watch에서 감지하여 새 값을(이전 값을 두 번째 인자로 받을 수 있음)를 받아 이용할 수 있다.
+
+- 이 때 ref를 사용하기 위해 data()에서 지정하였던 renderList 변수를 setup()으로 옮기고 watch 함수를 사용해 이 배열이 변경되는 것을 감지하였다.

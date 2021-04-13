@@ -4,7 +4,7 @@
       type="text"
       class="form-control"
       placeholder="할 일을 입력해주세요."
-      @keyup.enter="addItemHandler"
+      @keyup.enter="addItem"
     />
   </div>
 </template>
@@ -15,8 +15,8 @@ import { defineComponent } from "vue";
 export default defineComponent({
   name: "itemInput",
   methods: {
-    addItemHandler() {
-      return null;
+    addItem() {
+      this.$store.commit("addItem", {});
     },
   },
 });

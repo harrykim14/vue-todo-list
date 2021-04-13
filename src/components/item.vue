@@ -34,7 +34,9 @@ export default defineComponent({
     };
   },
   setup() {
-    return { store: useStore(key) };
+    return {
+      store: useStore(key),
+    };
   },
   methods: {
     changeStatus() {
