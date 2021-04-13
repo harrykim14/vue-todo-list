@@ -51,12 +51,7 @@ export default defineComponent({
   name: "item-list",
   data() {
     return {
-      data: [
-        { id: "0", title: "test1", status: "active" },
-        { id: "1", title: "test2", status: "active" },
-        { id: "2", title: "test3", status: "clear" },
-      ] as DATA[],
-      renderList: [] as DATA[],
+      renderList: this.
     };
   },
 }
@@ -68,24 +63,25 @@ export default defineComponent({
 
 ```typescript
 // item-list.vue
-...
-created() {
-    this.renderList = this.data;
-
-    this.$watch(
-      () => this.$route.params.status,
-      // eslint-disable-next-line
-      (toParams: string, previousParams: string) => {
-        console.log(toParams);
-        if (!toParams) {
-          this.renderList = this.data;
-        } else if (toParams === "active" || toParams === "clear") {
-          this.renderList = this.data.slice().filter((item) => {
-            return item.status === toParams;
-          });
+...created() {
+    (this.renderList = this.allTodoList()),
+      this.$watch(
+        () => this.$route.params.status,
+        // eslint-disable-next-line
+      (toParams: 'active'|'clear', previousParams: 'active'|'clear') => {
+          this.initRenderList(toParams);
         }
+      );
+  },
+  methods: {
+    initRenderList(status?: "active" | "clear") {
+      if (!status) {
+        this.renderList = this.allTodoList() as ITEM[];
+      } else if (status === "active" || status === "clear") {
+        this.renderList =
+          status === "active" ? this.activeTodoList() : this.clearTodoList();
       }
-    );
+    },
   },
 ...
 ```
@@ -115,3 +111,116 @@ export default router;
 ```
 
 (4) router-link는 기존과 동일하며 to="/경로"로 라우터를 사용할 수 있으며, 경로의 params는 2번에서 기술한 것 처럼 this.$route.params로 이용할 수 있고, 이는 바로 위의 코드에서처럼 `path: "/:status?"`와 같이 동적 경로로서 사용 할 수도 있다.
+
+(5) vuex 4.0.0을 사용하여 store를 구성하고자 할 때엔 key값을 Symbol 함수를 통해 고유한 값을 사용하도록 한다. createStore 함수 내에 기존 vuex처럼 state, mutation, actions, getters를 정의하여 사용할 수 있으며, 이렇게 정의된 key와 store를 main.ts에서 use() 함수 내에 인자로서 넣어주면 된다.
+
+```typescript
+// @/store/store.ts
+import { InjectionKey } from "vue";
+import { createStore, Store } from "vuex";
+import { ITEM } from "@/store/store.interface";
+
+export const key: InjectionKey<Store<ITEM>> = Symbol();
+
+export default createStore({
+  state: {
+    todoList: [
+      { id: 0, title: "test1", status: "active" },
+      { id: 1, title: "test2", status: "active" },
+      { id: 2, title: "test3", status: "clear" },
+    ] as ITEM[],
+  },
+  //...
+  mutation: {
+    // TODO added
+    addItem(state, item: ITEM) {
+      state.todoList.push(item);
+    },
+    // TODO changed status
+    changeStatus(
+      state,
+      { id, status }: { id: number; status: "active" | "clear" }
+    ) {
+      state.todoList[id].status = status;
+    },
+    // TODO deleted
+    removeStatus(state, id: number) {
+      state.todoList.splice(id, 1);
+    },
+  },
+  actions: {
+    /*...*/
+  },
+  getters: {
+    llTodoList: (state) => state.todoList,
+    activeTodoList: (state) =>
+      state.todoList.filter((item: ITEM) => item.status === "active"),
+    clearTodoList: (state) =>
+      state.todoList.filter((item: ITEM) => item.status === "clear"),
+  },
+});
+
+// main.ts
+import { createApp } from "vue";
+import App from "./App.vue";
+import router from "./router";
+import store, { key } from "./store/store"; // <<< import 할 때 key 값을 같이 import 한다
+
+createApp(App)
+  .use(store, key) /* <<< 이 부분 */
+  .use(router)
+  .mount("#app");
+```
+
+(6) 이렇게 정의한 store를 컴포넌트에서 사용하기 위해서는 useStore 함수를 setup 함수 내에서 사용해야 한다. 기존에 this.$store로도 불러오는 방법이 있지만 useStore를 사용하여 getters를 setup 함수 내에서 지정해 주어야 undefined로 표시되지 않을 것이다.
+
+```typescript
+// item-list.vue
+import { useStore } from "vuex";
+import { key } from "@/store/store";
+
+export default defineComponent({
+  setup() {
+    const store = useStore(key);
+    return {
+      allTodoList: () => store.getters[`allTodoList`],
+      activeTodoList: () => store.getters[`activeTodoList`],
+      clearTodoList: () => store.getters[`clearTodoList`],
+    };
+  },
+  data() {
+    return {
+      renderList: [],
+    };
+  },
+  created() {
+    (this.renderList = this.allTodoList()),
+  //...
+  }
+});
+```
+
+(7) 강의 내에서 `$event.target.checked`를 사용하였으나, vue3.0에서는 `$event.target.checked`를 찾을 수 없어 props로 받은 status를 기반으로 data()로 checked를 정의하여 methods에서 사용하였다.
+
+```typescript
+// item.vue
+data() {
+    return {
+      checked: this.status === "active" ? true : false,
+    };
+  },
+setup() {
+    return { store: useStore(key) };
+},
+methods: {
+  changeStatus() {
+        if (this.checked)
+          this.store.commit("changeStatus", { id: this.id, status: "clear" });
+        else
+          this.store.commit("changeStatus", { id: this.id, status: "active" });
+  },
+  removeItem() {
+    this.store.commit("removeItem", this.id);
+  },
+}
+```
