@@ -3,6 +3,7 @@
     <input
       type="text"
       class="form-control"
+      v-model="title"
       placeholder="할 일을 입력해주세요."
       @keyup.enter="addItem"
     />
@@ -14,9 +15,18 @@ import { defineComponent } from "vue";
 
 export default defineComponent({
   name: "itemInput",
+  data() {
+    return {
+      title: "",
+    };
+  },
   methods: {
     addItem() {
-      this.$store.commit("addItem", {});
+      this.$store.commit("addItem", {
+        id: this.$store.state.todoList.length + 1,
+        title: this.title,
+        status: "active",
+      });
     },
   },
 });

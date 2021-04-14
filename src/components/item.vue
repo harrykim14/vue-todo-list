@@ -5,6 +5,7 @@
         type="checkbox"
         :checked="status === 'clear'"
         @change="changeStatus"
+        v-model="checked"
       />
     </span>
     <input type="text" class="form-control" :value="title" />
@@ -17,7 +18,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, ref, watchEffect } from "vue";
 import { useStore } from "vuex";
 import { key } from "@/store/store";
 
@@ -29,20 +30,35 @@ export default defineComponent({
     status: String,
   },
   data() {
+    const check = this.status === "active" ? true : false;
+    const checkboxRef = ref(this.checked);
     return {
-      checked: this.status === "active" ? true : false,
+      ref: checkboxRef,
+      checked: check,
     };
   },
+  mounted() {
+    this.$watch(
+      () => this.ref,
+      () => this.$emit("initRenderList", this.status)
+    );
+    this.$forceUpdate();
+  },
   setup() {
+    const store = useStore(key);
     return {
-      store: useStore(key),
+      store: store,
     };
   },
   methods: {
     changeStatus() {
-      if (this.checked)
+      if (this.checked) {
         this.store.commit("changeStatus", { id: this.id, status: "clear" });
-      else this.store.commit("changeStatus", { id: this.id, status: "active" });
+        this.$forceUpdate();
+      } else {
+        this.store.commit("changeStatus", { id: this.id, status: "active" });
+        this.$forceUpdate();
+      }
     },
     removeItem() {
       this.store.commit("removeItem", this.id);

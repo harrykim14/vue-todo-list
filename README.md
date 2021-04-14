@@ -1,7 +1,8 @@
 ## Vue with Typescript 실전예제 (Todo-list)
 
-1. 컴포넌트 개발하기
-
+<details>
+<summary>1. 컴포넌트 개발하기</summary>
+<div markdown="1">
 ```vue
 <!-- Header.vue -->
 ...
@@ -11,7 +12,7 @@
 import { defineComponent } from "vue";
 
 export default defineComponent({
-  name: "appHeader",
+name: "appHeader",
 });
 </script>
 ...
@@ -28,7 +29,8 @@ export default defineComponent({
   },
 });
 </script>
-```
+
+````
 
 - vue 3에서 달라진 것들을 적용하기 위해 아래 자료를 참고하였다
 
@@ -55,7 +57,7 @@ export default defineComponent({
     };
   },
 }
-```
+````
 
 (2) vue-property-decorator에서 사용하던 watch를 $watch로 사용하며 이는 create()와 같은 lifecycle 함수에서 동작한다
 
@@ -86,7 +88,14 @@ export default defineComponent({
 ...
 ```
 
-(3) Vue Router 4.0.0 (21년 4월 12일 기준 beta 버전)에서는 createRouter, createWebHistory를 제공하며 RouteRecordRow 타입형식을 지원한다
+</div>
+</details>
+
+<details>
+<summary>2. 라우터 개발하기</summary>
+<div markdown="2">
+
+(1) Vue Router 4.0.0 (21년 4월 12일 기준 beta 버전)에서는 createRouter, createWebHistory를 제공하며 RouteRecordRow 타입형식을 지원한다
 
 - routes는 Array<RouteRecordRaw> 타입이며, createWebHistory는 해시 히스토리를 제공하는 함수이고, 나머지 설정들과 함께 createRouter로 라우터 인스턴스를 생성하면 라우터의 설정이 완료된다.
 
@@ -110,9 +119,16 @@ const router = createRouter({
 export default router;
 ```
 
-(4) router-link는 기존과 동일하며 to="/경로"로 라우터를 사용할 수 있으며, 경로의 params는 2번에서 기술한 것 처럼 this.$route.params로 이용할 수 있고, 이는 바로 위의 코드에서처럼 `path: "/:status?"`와 같이 동적 경로로서 사용 할 수도 있다.
+(2) router-link는 기존과 동일하며 to="/경로"로 라우터를 사용할 수 있으며, 경로의 params는 2번에서 기술한 것 처럼 this.$route.params로 이용할 수 있고, 이는 바로 위의 코드에서처럼 `path: "/:status?"`와 같이 동적 경로로서 사용 할 수도 있다.
 
-(5) vuex 4.0.0을 사용하여 store를 구성하고자 할 때엔 key값을 Symbol 함수를 통해 고유한 값을 사용하도록 한다. createStore 함수 내에 기존 vuex처럼 state, mutation, actions, getters를 정의하여 사용할 수 있으며, 이렇게 정의된 key와 store를 main.ts에서 use() 함수 내에 인자로서 넣어주면 된다.
+</div>
+</details>
+
+<details>
+<summary>3. 스토어 개발하기</summary>
+<div markdown="3">
+
+(1) vuex 4.0.0을 사용하여 store를 구성하고자 할 때엔 key값을 Symbol 함수를 통해 고유한 값을 사용하도록 한다. createStore 함수 내에 기존 vuex처럼 state, mutation, actions, getters를 정의하여 사용할 수 있으며, 이렇게 정의된 key와 store를 main.ts에서 use() 함수 내에 인자로서 넣어주면 된다.
 
 ```typescript
 // @/store/store.ts
@@ -203,7 +219,14 @@ export default defineComponent({
 });
 ```
 
-(7) 강의 내에서 `$event.target.checked`를 사용하였으나, vue3.0에서는 `$event.target.checked`를 찾을 수 없어 props로 받은 status를 기반으로 data()로 checked를 정의하여 methods에서 사용하였다.
+</div>
+</detials>
+
+<details>
+<summary>4. 그 외 개발 도중에 만난 vue 3.0의 변경점</summary>
+<div markdown="4">
+
+(1) 강의 내에서 `$event.target.checked`를 사용하였으나, vue3.0에서는 `$event.target.checked`를 찾을 수 없어 props로 받은 status를 기반으로 data()로 checked를 정의하여 methods에서 사용하였다.
 
 ```typescript
 // item.vue
@@ -228,7 +251,7 @@ methods: {
 }
 ```
 
-(8) vue3.0 에서는 watch를 사용할 때 setup() 내에서 ref()로 지정한 레퍼런스의 변화를 감지할 수 있도록 변경되었다.
+(2) vue3.0 에서는 watch를 사용할 때 setup() 내에서 ref()로 지정한 레퍼런스의 변화를 감지할 수 있도록 변경되었다.
 
 ```typescript
 // item-list.vue
@@ -254,3 +277,8 @@ setup() {
 - 위의 코드에서 store state에 저장된 todoList를 레퍼런스로 지정하고, 값이 변경되는 것을 watch에서 감지하여 새 값을(이전 값을 두 번째 인자로 받을 수 있음)를 받아 이용할 수 있다.
 
 - 이 때 ref를 사용하기 위해 data()에서 지정하였던 renderList 변수를 setup()으로 옮기고 watch 함수를 사용해 이 배열이 변경되는 것을 감지하였다.
+
+(3) 체크박스 이벤트를 핸들링하는 법에 대한 차후 공부가 필요함
+
+</div>
+</details>
