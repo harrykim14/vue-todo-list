@@ -18,7 +18,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watchEffect } from "vue";
+import { defineComponent, ref } from "vue";
 import { useStore } from "vuex";
 import { key } from "@/store/store";
 

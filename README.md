@@ -220,7 +220,7 @@ export default defineComponent({
 ```
 
 </div>
-</detials>
+</details>
 
 <details>
 <summary>4. 그 외 개발 도중에 만난 vue 3.0의 변경점</summary>
