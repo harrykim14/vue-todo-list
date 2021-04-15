@@ -100,13 +100,13 @@ export default defineComponent({
 - routes는 Array<RouteRecordRaw> 타입이며, createWebHistory는 해시 히스토리를 제공하는 함수이고, 나머지 설정들과 함께 createRouter로 라우터 인스턴스를 생성하면 라우터의 설정이 완료된다.
 
 ```typescript
-import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router";
-import itemList from "@/views/item-list.vue";
+import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
+import itemList from '@/views/item-list.vue';
 
 const routes: Array<RouteRecordRaw> = [
   {
-    path: "/:status?",
-    name: "item-list",
+    path: '/:status?',
+    name: 'item-list',
     component: itemList,
   },
 ];
@@ -132,18 +132,18 @@ export default router;
 
 ```typescript
 // @/store/store.ts
-import { InjectionKey } from "vue";
-import { createStore, Store } from "vuex";
-import { ITEM } from "@/store/store.interface";
+import { InjectionKey } from 'vue';
+import { createStore, Store } from 'vuex';
+import { ITEM } from '@/store/store.interface';
 
 export const key: InjectionKey<Store<ITEM>> = Symbol();
 
 export default createStore({
   state: {
     todoList: [
-      { id: 0, title: "test1", status: "active" },
-      { id: 1, title: "test2", status: "active" },
-      { id: 2, title: "test3", status: "clear" },
+      { id: 0, title: 'test1', status: 'active' },
+      { id: 1, title: 'test2', status: 'active' },
+      { id: 2, title: 'test3', status: 'clear' },
     ] as ITEM[],
   },
   //...
@@ -155,7 +155,7 @@ export default createStore({
     // TODO changed status
     changeStatus(
       state,
-      { id, status }: { id: number; status: "active" | "clear" }
+      { id, status }: { id: number; status: 'active' | 'clear' }
     ) {
       state.todoList[id].status = status;
     },
@@ -173,22 +173,22 @@ export default createStore({
   getters: {
     llTodoList: (state) => state.todoList,
     activeTodoList: (state) =>
-      state.todoList.filter((item: ITEM) => item.status === "active"),
+      state.todoList.filter((item: ITEM) => item.status === 'active'),
     clearTodoList: (state) =>
-      state.todoList.filter((item: ITEM) => item.status === "clear"),
+      state.todoList.filter((item: ITEM) => item.status === 'clear'),
   },
 });
 
 // main.ts
-import { createApp } from "vue";
-import App from "./App.vue";
-import router from "./router";
-import store, { key } from "./store/store"; // <<< import 할 때 key 값을 같이 import 한다
+import { createApp } from 'vue';
+import App from './App.vue';
+import router from './router';
+import store, { key } from './store/store'; // <<< import 할 때 key 값을 같이 import 한다
 
 createApp(App)
   .use(store, key) /* <<< 이 부분 */
   .use(router)
-  .mount("#app");
+  .mount('#app');
 ```
 
 (6) 이렇게 정의한 store를 컴포넌트에서 사용하기 위해서는 useStore 함수를 setup 함수 내에서 사용해야 한다. 기존에 this.$store로도 불러오는 방법이 있지만 useStore를 사용하여 getters를 setup 함수 내에서 지정해 주어야 undefined로 표시되지 않을 것이다.
@@ -278,7 +278,67 @@ setup() {
 
 - 이 때 ref를 사용하기 위해 data()에서 지정하였던 renderList 변수를 setup()으로 옮기고 watch 함수를 사용해 이 배열이 변경되는 것을 감지하였다.
 
-(3) 체크박스 이벤트를 핸들링하는 법에 대한 차후 공부가 필요함
+(3) 체크박스 이벤트를 핸들링하는 법
+
+```typescript
+// item-list.vue
+ changeStatus(event: Event) {
+      const checked: boolean = (event.target as HTMLInputElement).checked;
+      if (checked) {
+        this.store.commit('changeStatus', { id: this.id, status: 'clear' });
+      } else {
+        this.store.commit('changeStatus', { id: this.id, status: 'active' });
+      }
+    },
+```
+
+- `event.target`내에 체크박스 관련 이벤트 타입이 정의되어 있지 않기 때문에 HTMLInputElement로 타입 정의를 해 주어야 한다
 
 </div>
 </details>
+
+<details>
+<summary>4. Axios를 사용해 통신 해보기</summary>
+<div markdown="4">
+(1) Axios 인스턴스의 타입 정의하고 설정하기
+
+```typescript
+// service/axios.service.ts
+import axios, { AxiosInstance } from 'axios';
+
+export default class AxiosService {
+  static readonly instance: AxiosInstance = axios.create({
+    baseURL: `${process.env.axiosURL}`,
+    timeout: 100000,
+  });
+}
+```
+
+(2) store에 axios로 통신하는 함수를 작성하기
+
+```typescript
+ actions: {
+    async initData({ commit }) {
+      // TODO http 통신
+      const response: AxiosResponse<{
+        todoList: ITEM[];
+      }> = await AxiosService.instance.get("/data.json");
+      commit("setTodoList", response.data.todoList);
+    },
+  },
+```
+
+- 이 때, AxiosResponse 타입을 지정해주는 것을 잊지말자
+
+(3) 컴포넌트에서 Axios로 통신하기
+
+```typescript
+async created() {
+    this.$store.dispatch('initData');
+  },
+```
+
+- Axios 통신은 당연하지만 Promise로 반환하기 때문에 created가 비동기적으로 호출되어야 한다
+
+</div>
+<details>
