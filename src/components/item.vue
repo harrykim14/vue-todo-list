@@ -18,19 +18,19 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from "vue";
-import { useStore } from "vuex";
-import { key } from "@/store/store";
+import { defineComponent, ref } from 'vue';
+import { useStore } from 'vuex';
+import { key } from '@/store/store';
 
 export default defineComponent({
-  name: "item",
+  name: 'item',
   props: {
     id: String,
     title: String,
     status: String,
   },
   data() {
-    const check = this.status === "active" ? true : false;
+    const check = this.status === 'active' ? true : false;
     const checkboxRef = ref(this.checked);
     return {
       ref: checkboxRef,
@@ -40,7 +40,7 @@ export default defineComponent({
   mounted() {
     this.$watch(
       () => this.ref,
-      () => this.$emit("initRenderList", this.status)
+      () => this.$emit('initRenderList', this.status)
     );
     this.$forceUpdate();
   },
@@ -51,17 +51,18 @@ export default defineComponent({
     };
   },
   methods: {
-    changeStatus() {
-      if (this.checked) {
-        this.store.commit("changeStatus", { id: this.id, status: "clear" });
+    changeStatus(event: Event) {
+      const checked: boolean = (event.target as HTMLInputElement).checked;
+      if (checked) {
+        this.store.commit('changeStatus', { id: this.id, status: 'clear' });
         this.$forceUpdate();
       } else {
-        this.store.commit("changeStatus", { id: this.id, status: "active" });
+        this.store.commit('changeStatus', { id: this.id, status: 'active' });
         this.$forceUpdate();
       }
     },
     removeItem() {
-      this.store.commit("removeItem", this.id);
+      this.store.commit('removeItem', this.id);
     },
   },
 });
